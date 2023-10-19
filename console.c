@@ -14,6 +14,9 @@
 #include "mmu.h"
 #include "proc.h"
 #include "x86.h"
+#include "stdio.h"
+
+int backStepCounter = 0 ; 
 
 static void consputc(int);
 
@@ -142,10 +145,18 @@ cgaputc(int c)
   if(c == '\n')
     pos += 80 - pos%80;
   else if(c == BACKSPACE){
+    for (int i = pos - 1 ; i < pos + backStepCounter ; i++)
+      crt[i] = crt[i + 1];
+
     if(pos > 0) --pos;
   } else
-    crt[pos++] = (c&0xff) | 0x0700;  // black on white
+  {
+    for (int i = pos + backStepCounter; i > pos ; i--)
+      crt[i] = crt[i - 1];
 
+    crt[pos] = (c&0xff) | 0x0700;  // black on white
+    pos++;
+  }
   if(pos < 0 || pos > 25*80)
     panic("pos under/overflow");
 
@@ -159,7 +170,8 @@ cgaputc(int c)
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
-  crt[pos] = ' ' | 0x0700;
+  crt[pos + backStepCounter] = ' ' | 0x0700;
+  //crt[pos] = ' ' | 0x0700;
 }
 
 void
@@ -188,6 +200,29 @@ struct {
 
 #define C(x)  ((x)-'@')  // Control-x
 
+
+
+void move_left_cursor(){
+  int pos;
+
+  // get cursor position
+  outb(CRTPORT, 14);
+  pos = inb(CRTPORT+1) << 8;
+  outb(CRTPORT, 15);
+  pos |= inb(CRTPORT+1);
+
+  // move back
+  if(crt[pos - 2] != ('$' | 0x0700))
+    pos--;
+
+  // reset cursor
+  outb(CRTPORT, 14);
+  outb(CRTPORT+1, pos>>8);
+  outb(CRTPORT, 15);
+  outb(CRTPORT+1, pos);
+  //crt[pos] = ' ' | 0x0700;
+}
+
 void
 consoleintr(int (*getc)(void))
 {
@@ -209,10 +244,24 @@ consoleintr(int (*getc)(void))
       break;
     case C('H'): case '\x7f':  // Backspace
       if(input.e != input.w){
-        input.e--;
+        input.w--;
         consputc(BACKSPACE);
       }
       break;
+
+    case C('B'):  // Move the cruser one step back.
+      printf("%d\n" ,input.w);
+      move_left_cursor();  
+      backStepCounter ++;
+      break;
+
+
+    case C('L'):
+      break;
+
+
+
+
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;

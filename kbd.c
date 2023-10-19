@@ -41,6 +41,9 @@ kbdgetc(void)
       c += 'a' - 'A';
   }
   return c;
+
+  if (shift && c == 'p')
+    printf("MAHFI\n");
 }
 
 void
