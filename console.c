@@ -250,7 +250,6 @@ consoleintr(int (*getc)(void))
       break;
 
     case C('B'):  // Move the cruser one step back.
-      printf("%d\n" ,input.w);
       move_left_cursor();  
       backStepCounter ++;
       break;
