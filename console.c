@@ -14,7 +14,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "x86.h"
-#include "stdio.h"
+
 
 int backStepCounter = 0 ; 
 
