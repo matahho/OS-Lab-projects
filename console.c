@@ -17,6 +17,9 @@
 
 
 int backStepCounter = 0 ; 
+int first_cmd = 0;
+int current_cmd = 0;
+int last_cmd = 0;
 
 static void consputc(int);
 
@@ -261,6 +264,26 @@ void addCharAtIndex(char arr[] , int e , int i, char newChar) {
     arr[i] = newChar;
 }
 
+struct {  // a copy of 10 latest commands stored in memory
+  char cmd[10][INPUT_BUF];
+} prevcmd;
+
+void sync_cmd(){
+  if(input.e != input.w){
+    int virtual_pos = 0;
+    int pos = input.w;
+    while(pos != input.e){
+      prevcmd.cmd[current_cmd][virtual_pos] = input.buf[pos];
+      prevcmd.cmd[current_cmd][virtual_pos+1] = '\n';
+      virtual_pos++;
+      pos++;
+    }
+  }
+}
+
+#define ARROW_UP 226
+#define ARROW_DOWN 227
+
 
 
 void
@@ -270,6 +293,7 @@ consoleintr(int (*getc)(void))
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
+    sync_cmd(); //make copy of latest command in buffer into memory
     switch(c){
     case C('P'):  // Process listing.
       // procdump() locks cons.lock indirectly; invoke later
@@ -303,6 +327,33 @@ consoleintr(int (*getc)(void))
       break;
 
 
+    case ARROW_UP:
+      int temp_pos = 0;
+      if(current_cmd > first_cmd && last_cmd > first_cmd){
+        current_cmd--;
+      }
+      else if(current_cmd < first_cmd && last_cmd < first_cmd){
+        if(current_cmd-1 < 0){
+          current_cmd = 9;
+        }
+        else {
+          current_cmd--;
+        }
+      }
+      while(input.e != input.w && input.buf[(input.e-1) % INPUT_BUF] != '\n'){
+        input.e--;
+        consputc(BACKSPACE);
+      }
+      while(prevcmd.cmd[current_cmd][temp_pos] != '\n'){
+        input.buf[input.e++ % INPUT_BUF] = prevcmd.cmd[current_cmd][temp_pos];
+        consputc(prevcmd.cmd[current_cmd][temp_pos]);
+        temp_pos++;
+      }
+      break;
+
+
+    case ARROW_DOWN:
+      break;
 
  
     default:
@@ -319,6 +370,15 @@ consoleintr(int (*getc)(void))
         consputc(c);
         if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
           input.w = input.e;
+          if((last_cmd + 1) % 10 == first_cmd){
+            first_cmd = (first_cmd + 1) % 10;
+            last_cmd = (last_cmd + 1) % 10;
+            current_cmd = last_cmd;
+          }
+          else {
+            last_cmd++;
+            current_cmd = last_cmd;
+          }
           wakeup(&input.r);
         }
       }
