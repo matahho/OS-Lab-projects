@@ -144,12 +144,14 @@ cgaputc(int c)
 
   if(c == '\n')
     pos += 80 - pos%80;
+
   else if(c == BACKSPACE){
     for (int i = pos - 1 ; i < pos + backStepCounter ; i++)
       crt[i] = crt[i + 1];
 
     if(pos > 0) --pos;
   } else
+  
   {
     for (int i = pos + backStepCounter; i > pos ; i--)
       crt[i] = crt[i - 1];
@@ -220,8 +222,46 @@ void move_left_cursor(){
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
-  //crt[pos] = ' ' | 0x0700;
+
 }
+
+void move_right_cursor(){
+  int pos;
+
+  // get cursor position
+  outb(CRTPORT, 14);
+  pos = inb(CRTPORT+1) << 8;
+  outb(CRTPORT, 15);
+  pos |= inb(CRTPORT+1);
+
+  // move forward
+  pos++;
+
+  // reset all the  cursor
+  outb(CRTPORT, 14);
+  outb(CRTPORT+1, pos>>8);
+  outb(CRTPORT, 15);
+  outb(CRTPORT+1, pos);
+
+}
+
+void addCharAtIndex(char arr[] , int e , int i, char newChar) {
+    int len = e ;
+
+    if (i < 0 || i > len) {
+        return;
+    }
+
+    // Shift characters to the right of index i by one position
+    for (int j = len; j > i; j--) {
+        arr[j] = arr[j - 1];
+    }
+
+    // Set the character at index i to the new character
+    arr[i] = newChar;
+}
+
+
 
 void
 consoleintr(int (*getc)(void))
@@ -254,17 +294,28 @@ consoleintr(int (*getc)(void))
       backStepCounter ++;
       break;
 
+    case C('F'): // Move the cruser one step forward.
+      move_right_cursor();
+      backStepCounter --;
+      break;
 
     case C('L'):
       break;
 
 
 
-
+ 
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
-        input.buf[input.e++ % INPUT_BUF] = c;
+        if (backStepCounter == 0 || c == '\n'){
+          input.buf[input.e++ % INPUT_BUF] = c;
+          backStepCounter =0 ;
+        }
+        else if (backStepCounter > 0 ){
+          addCharAtIndex(input.buf , input.e % INPUT_BUF , input.e - backStepCounter, c);
+          input.e++;
+        }
         consputc(c);
         if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
           input.w = input.e;
