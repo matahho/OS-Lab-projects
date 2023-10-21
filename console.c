@@ -281,6 +281,22 @@ void sync_cmd(){ //keeps saving recent command in memory
   }
 }
 
+void move_cruser_2_topleft(){
+    //cursor position to top left movement
+    int pos=0;
+    outb(CRTPORT, 14);
+    outb(CRTPORT+1, pos>>8);
+    outb(CRTPORT, 15);
+    outb(CRTPORT+1, pos);
+  
+    cgaputc('$');
+    cgaputc(' ');
+    uartputc('$');
+    uartputc(' ');  
+    
+
+}
+
 #define ARROW_UP 226
 #define ARROW_DOWN 227
 
@@ -326,7 +342,10 @@ consoleintr(int (*getc)(void))
       break;
 
     case C('L'):
-      break;
+    for (int i =0 ; i < 50 ; i++)
+      cgaputc('\n'); //writing to qemu 
+    move_cruser_2_topleft();
+    break;  
 
 
     case ARROW_UP:
