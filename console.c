@@ -268,7 +268,7 @@ struct {  // a copy of 10 latest commands stored in memory
   char cmd[10][INPUT_BUF];
 } prevcmd;
 
-void sync_cmd(){
+void sync_cmd(){ //keeps saving recent command in memory
   if(input.e != input.w){
     int virtual_pos = 0;
     int pos = input.w;
@@ -285,6 +285,8 @@ void sync_cmd(){
 #define ARROW_DOWN 227
 
 
+int temp_pos = 0;
+int mov_cmd_lock = 0;
 
 void
 consoleintr(int (*getc)(void))
@@ -328,31 +330,60 @@ consoleintr(int (*getc)(void))
 
 
     case ARROW_UP:
-      int temp_pos = 0;
+      temp_pos = 0;
       if(current_cmd > first_cmd && last_cmd > first_cmd){
         current_cmd--;
+        mov_cmd_lock = 1;
       }
       else if(current_cmd < first_cmd && last_cmd < first_cmd){
         if(current_cmd-1 < 0){
           current_cmd = 9;
+          mov_cmd_lock = 1;
         }
         else {
           current_cmd--;
+          mov_cmd_lock = 1;
         }
       }
-      while(input.e != input.w && input.buf[(input.e-1) % INPUT_BUF] != '\n'){
+      while(input.e != input.w && input.buf[(input.e-1) % INPUT_BUF] != '\n' && mov_cmd_lock){
         input.e--;
         consputc(BACKSPACE);
       }
-      while(prevcmd.cmd[current_cmd][temp_pos] != '\n'){
+      while(prevcmd.cmd[current_cmd][temp_pos] != '\n' && mov_cmd_lock){
         input.buf[input.e++ % INPUT_BUF] = prevcmd.cmd[current_cmd][temp_pos];
         consputc(prevcmd.cmd[current_cmd][temp_pos]);
         temp_pos++;
       }
+      mov_cmd_lock = 0;
       break;
 
 
     case ARROW_DOWN:
+      temp_pos = 0;
+      if(current_cmd < last_cmd && first_cmd < last_cmd){
+        current_cmd++;
+        mov_cmd_lock = 1;
+      }
+      else if(current_cmd > last_cmd && first_cmd > last_cmd){
+        if(current_cmd + 1 > 9){
+          current_cmd = 0;
+          mov_cmd_lock = 1;
+        }
+        else {
+          current_cmd++;
+          mov_cmd_lock = 1;
+        }
+      }
+      while(input.e != input.w && input.buf[(input.e-1) % INPUT_BUF] != '\n' && mov_cmd_lock){
+        input.e--;
+        consputc(BACKSPACE);
+      }
+      while(prevcmd.cmd[current_cmd][temp_pos] != '\n' && mov_cmd_lock){
+        input.buf[input.e++ % INPUT_BUF] = prevcmd.cmd[current_cmd][temp_pos];
+        consputc(prevcmd.cmd[current_cmd][temp_pos]);
+        temp_pos++;
+      }
+      mov_cmd_lock = 0;
       break;
 
  
@@ -379,6 +410,7 @@ consoleintr(int (*getc)(void))
             last_cmd++;
             current_cmd = last_cmd;
           }
+          prevcmd.cmd[current_cmd][0] = '\n';
           wakeup(&input.r);
         }
       }
