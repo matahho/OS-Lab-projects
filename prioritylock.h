@@ -12,7 +12,7 @@ struct priorityQueue
 struct prioritylock {
   uint locked;       // Is the lock held?
   struct spinlock lk; // spinlock protecting this priority lock
-  struct priorityQueue queue;
+  struct priorityQueue* queue;
 
 
   // For debugging:

@@ -145,8 +145,8 @@ void            initsleeplock(struct sleeplock*, char*);
 // Prioritylock.c
 void            acquire_prioritylock(struct prioritylock* plk);
 void            release_prioritylock(struct prioritylock* plk);
-struct proc*    pop_from_pq(struct priorityQueue** head);
-void            add_to_pq (struct proc* head , struct proc* proc);
+struct proc*    pop_from_pq(struct priorityQueue* head);
+void            add_to_pq (struct priorityQueue* head , struct proc* proc);
 void            initplock(struct prioritylock *lk, char *name);
 
 

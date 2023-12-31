@@ -1,110 +1,90 @@
-// #include "stddef.h"
-// #include "types.h"
-// #include "defs.h"
-// #include "param.h"
-// #include "x86.h"
-// #include "memlayout.h"
-// #include "mmu.h"
-// #include "proc.h"
-// #include "spinlock.h"
-// #include "prioritylock.h"
+#include "types.h"
+#include "defs.h"
+#include "param.h"
+#include "x86.h"
+#include "memlayout.h"
+#include "mmu.h"
+#include "proc.h"
+#include "spinlock.h"
+#include "sleeplock.h"
+#include "prioritylock.h"
 
-// void
-// initplock(struct prioritylock *lk, char *name)
-// {
-//   initlock(&lk->lk, "priority lock");
-//   lk->name = name;
-//   lk->locked = 0;
-//   lk->pid = 0;
-// }
+void
+initplock(struct prioritylock *lk, char *name)
+{
+  initlock(&lk->lk, "priority lock");
+  lk->name = name;
+  lk->locked = 0;
+  lk->pid = 0;
+  lk->queue = 0;
+}
 
+void add_to_pq(struct priorityQueue *queue, struct proc* proc){
+    struct priorityQueue* current = (struct priorityQueue*)kalloc();
+    if (current == 0){
+        panic("Alloc failded");
+    }
+    current->proc = proc;
+    struct priorityQueue* head = queue;
+    if (head == 0){
+        current->next = 0;
+        queue = current;
+        return;
+    }
+    while(1){
+        if (head->next == 0){
+            current->next = 0;
+            head->next = current;
+            break;
+        }
+        if (head->next->proc->pid < current->proc->pid){
+            head = head->next;
+        }
+        else{
+            struct priorityQueue* temp = head->next;
+            head->next = current;
+            current->next = temp;
+            break;
+        }
+    }
+}
 
-// void 
-// add_to_pq (struct proc* head , struct proc* proc){
-// 	struct priorityQueue* new_node = (struct priorityQueue*)kalloc (sizeof(struct priorityQueue));
-// 	new_node->proc = proc;
-//   new_node->next = NULL;
+struct proc* pop_from_pq(struct priorityQueue *queue){
+    if (queue == 0){
+        return 0;
+    }
+    struct proc* ans = queue->proc;
+    struct priorityQueue* temp = queue->next;
+    kfree((char *)queue);
+    queue = temp;
 
+    return ans;
+}
 
-//   struct priorityQueue* current = head;
-//     struct priorityQueue* prev = NULL;
+void
+acquire_prioritylock(struct prioritylock *lk)
+{
+  acquire(&lk->lk);
+  if (lk->locked) {
+    add_to_priority_list(lk, myproc());
+    sleep(lk, &lk->lk);
+  }
 
-//     // Find the position to insert the new node based on priority
-//     while (current != NULL && current->proc->pid < proc->pid) {
-//         prev = current;
-//         current = current->next;
-      
-//     }
+  lk->locked = 1;
+  lk->pid = myproc()->pid;
+  release(&lk->lk);
+}
 
-//     if (prev == NULL) {
-//       new_node->next = head;
-//       head = new_node;
-//     } else {
-//         prev->next = new_node;
-//         new_node->next = current;
-//     }
-// }
-
-
-// struct proc* pop_from_pq(struct priorityQueue** head) {
-//     if (*head == NULL) {
-//         // Priority queue is empty
-//         return NULL;
-//     }
-
-//     struct priorityQueue* temp = *head;
-//     struct proc* popped_proc = temp->proc;
-
-//     *head = (*head)->next;
-
-//     free(temp);  
-//     return popped_proc;
-// }
-
-
-// void 
-// acquire_prioritylock(struct prioritylock* plk) {
-//     struct proc* curproc = myproc();
-
-//     acquire(&plk->lk); 
-
- 
-        
-//     add_to_pq(&plk->queue, curproc);
-//     while (plk->locked) {
-//       sleep(plk, &plk->lk);
-//     }
-    
-       
-//     plk->locked = 1;
-//     plk->pid = curproc->pid;
-//     release(&plk->lk); 
-// }
-
-// void release_prioritylock(struct prioritylock* plk) {
-//     acquire(&plk->lk); 
-//     if (plk->queue.proc != NULL) {
-//         struct proc* next_proc = pop_from_pq(&plk->queue);
-
-//         plk->pid = next_proc->pid;
-//     } else {
-//         // If the priority queue is empty, release the lock
-//         plk->locked = 0;
-//         plk->pid = 0;
-//     }
-
-//     // Wake up the process that just acquired the lock
-//     wakeup(plk);
-
-//     release(&plk->lk); // Release the spinlock
-// }
-
-
-
-
-
-
-
-
-
+void
+release_prioritylock(struct prioritylock *lk)
+{
+  acquire(&lk->lk);
+  struct proc* proc = get_highest_priority(lk->queue);
+  lk->locked = 0;
+  lk->pid = 0;
+  if (proc != 0){
+    wakeup(proc);
+  }
+  release(&lk->lk);
+}
 
