@@ -9,6 +9,25 @@
 #include "sleeplock.h"
 #include "prioritylock.h"
 
+
+void watch_pq(struct prioritylock *lk){
+  
+  struct priorityQueue* head = lk->queue;
+  cprintf("pid that uses lock : %d \n", lk->pid);
+  cprintf("priority lock :\n");
+  if (head == 0){
+    return;
+  }
+  int i = 1;
+  while(1){
+    if (head == 0){
+      break;
+    }
+    cprintf("%d- pid : %d\n", i, head->proc->pid);
+    head = head->next;
+  }
+}
+
 void
 initplock(struct prioritylock *lk, char *name)
 {
