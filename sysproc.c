@@ -94,6 +94,6 @@ sys_uptime(void)
 
 int sys_count_called_syscalls(void)
 {
-  return count_called_syscalls();
-
+  count_called_syscalls();
+  return 1; 
 }
