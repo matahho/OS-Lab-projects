@@ -540,7 +540,8 @@ void count_called_syscalls(void){
       cprintf("\n");
     }
     cprintf("\n");
-    cprintf("All CPUs : %d" , tickslock );
+    cprintf("All CPUs : %d" , syscallCoutnerAll );
+    cprintf("\n\n\n");
 
 }
 
