@@ -97,3 +97,16 @@ int sys_count_called_syscalls(void)
   count_called_syscalls();
   return 1; 
 }
+
+
+int
+sys_prioritylockInit(void)
+{
+  return 1;
+}
+
+int
+sys_prioritylockTest(void)
+{
+  return 1;
+}

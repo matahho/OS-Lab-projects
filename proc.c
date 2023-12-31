@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "prioritylock.h"
 
 
 struct {
@@ -20,6 +21,9 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+struct prioritylock pl;
+int sharedValue ; 
 
 void
 pinit(void)
@@ -546,7 +550,22 @@ void count_called_syscalls(void){
 }
 
 
+int
+prioritylockInit(void)
+{
+  initTicketlock(&pl, "ticketlock");
+  sharedValue = 0;
+  return 1;
+}
 
+int
+prioritylockTest(void)
+{
+  acquire_prioritylock(&pl);
+  sharedValue++;
+  release_prioritylock(&pl);
+  return sharedValue;
+}
 
 
 

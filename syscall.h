@@ -21,3 +21,6 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_count_called_syscalls 22
+#define SYS_prioritylockInit 23
+#define SYS_prioritylockTest 24
+
