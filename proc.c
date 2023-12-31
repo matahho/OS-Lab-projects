@@ -534,11 +534,9 @@ procdump(void)
   }
 }
 
-// #include <linux/>
-
-// int count_called_syscalls(void){
-
-// }
+void count_called_syscalls(void){
+  
+}
 
 
 

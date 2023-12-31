@@ -12,7 +12,10 @@
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
+struct spinlock syscallCounterLock;
+struct spinlock syscallCounterEachCPU;
 uint ticks;
+uint syscallCoutnerAll;
 
 void
 tvinit(void)
@@ -41,6 +44,15 @@ trap(struct trapframe *tf)
       exit();
     myproc()->tf = tf;
     syscall();
+
+    acquire(&syscallCounterLock);
+    syscallCoutnerAll++;
+    release(&syscallCounterLock);
+
+    acquire(&syscallCounterEachCPU);
+    mycpu()->syscall_counter ++;
+    release(&syscallCounterEachCPU);
+
     if(myproc()->killed)
       exit();
     return;
