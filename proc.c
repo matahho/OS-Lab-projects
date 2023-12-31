@@ -535,7 +535,13 @@ procdump(void)
 }
 
 void count_called_syscalls(void){
-  
+    for (int cpuIndex = 0 ; cpuIndex < NCPU ; cpuIndex++){
+      cprintf("cpu[%d] syscall counter : %d" ,cpuIndex ,cpus[cpuIndex].syscall_counter);
+      cprintf("\n");
+    }
+    cprintf("\n");
+    cprintf("All CPUs : %d" , tickslock );
+
 }
 
 
