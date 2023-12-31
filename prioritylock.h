@@ -5,11 +5,11 @@
 struct priorityQueue
 {
 	struct proc* proc;
-	struct proc* next;
+	struct priorityQueue* next;
 };
 
 
-struct sleeplock {
+struct prioritylock {
   uint locked;       // Is the lock held?
   struct spinlock lk; // spinlock protecting this sleep lock
   struct priorityQueue queue;
