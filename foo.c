@@ -1,26 +1,29 @@
 #include "types.h"
+#include "stat.h"
 #include "user.h"
+#include "fcntl.h"
 
-#define PROCS_NUM 5
-
-int main()
+int main(int argc, char *argv[])
 {
-    for (int i = 0; i < PROCS_NUM; ++i){
+    
+    for(int i=0 ; i < 10 ; i++){
+
         int pid = fork();
-        if (pid > 0)
-            continue;
-        if (pid == 0)
-        {
-            sleep(5000);
-            for (int j = 0; j < 100 * i; ++j)
-            {
-                int x = 1;
-                for (long k = 0; k < 1000; ++k)
-                    x++;
-            }
+        if(pid == 0){
+            char inp[10] = "outfile";
+            inp[7] = '0' + i;
+            inp[8] = '\0';
+            int fd = open(inp , O_WRONLY );
+
+            write(fd , "hellow" , 7);
+            close(fd);
             exit();
         }
     }
-    while (wait() != -1);
+
+    for(int i=0 ;i < 10 ; i++){
+        wait();
+    }
+
     exit();
 }
