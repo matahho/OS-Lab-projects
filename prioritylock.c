@@ -66,7 +66,7 @@ acquire_prioritylock(struct prioritylock *lk)
 {
   acquire(&lk->lk);
   if (lk->locked) {
-    add_to_priority_list(lk, myproc());
+    add_to_pq(lk->queue, myproc());
     sleep(lk, &lk->lk);
   }
 
@@ -79,7 +79,7 @@ void
 release_prioritylock(struct prioritylock *lk)
 {
   acquire(&lk->lk);
-  struct proc* proc = get_highest_priority(lk->queue);
+  struct proc* proc = pop_from_pq(lk->queue);
   lk->locked = 0;
   lk->pid = 0;
   if (proc != 0){
