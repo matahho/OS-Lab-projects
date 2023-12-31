@@ -184,6 +184,7 @@ UPROGS=\
 	_zombie\
 	_foo\
 	_cpuCohere\
+	_testPLock\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
