@@ -16,8 +16,6 @@ initplock(struct prioritylock *lk, char *name)
   lk->name = name;
   lk->locked = 0;
   lk->pid = 0;
-  lk->queue.proc = NULL;
-  
 }
 
 
@@ -70,20 +68,16 @@ acquire_prioritylock(struct prioritylock* plk) {
 
     acquire(&plk->lk); 
 
-    if (plk->locked) {
+ 
         
-        add_to_pq(&plk->queue, curproc);
-
-        
-        while (plk->locked) {
-            sleep(plk, &plk->lk);
-        }
-    } else {
-       
-        plk->locked = 1;
-        plk->pid = curproc->pid;
+    add_to_pq(&plk->queue, curproc);
+    while (plk->locked) {
+      sleep(plk, &plk->lk);
     }
-
+    
+       
+    plk->locked = 1;
+    plk->pid = curproc->pid;
     release(&plk->lk); 
 }
 
