@@ -553,7 +553,7 @@ void count_called_syscalls(void){
 int
 prioritylockInit(void)
 {
-  initTicketlock(&pl, "ticketlock");
+  initplock(&pl, "ticketlock");
   sharedValue = 0;
   return 1;
 }
@@ -563,6 +563,7 @@ prioritylockTest(void)
 {
   acquire_prioritylock(&pl);
   sharedValue++;
+  watch_pq(&pl);
   release_prioritylock(&pl);
   return sharedValue;
 }

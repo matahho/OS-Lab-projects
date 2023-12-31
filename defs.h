@@ -148,6 +148,7 @@ void            release_prioritylock(struct prioritylock* plk);
 struct proc*    pop_from_pq(struct priorityQueue* head);
 void            add_to_pq (struct priorityQueue* head , struct proc* proc);
 void            initplock(struct prioritylock *lk, char *name);
+void 			watch_pq(struct prioritylock *lk);
 
 
 // string.c
