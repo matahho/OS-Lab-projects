@@ -16,6 +16,8 @@ initplock(struct prioritylock *lk, char *name)
   lk->name = name;
   lk->locked = 0;
   lk->pid = 0;
+  lk->queue.proc = NULL;
+  
 }
 
 
@@ -84,4 +86,31 @@ acquire_prioritylock(struct prioritylock* plk) {
 
     release(&plk->lk); 
 }
+
+void release_prioritylock(struct prioritylock* plk) {
+    acquire(&plk->lk); 
+    if (plk->queue.proc != NULL) {
+        struct proc* next_proc = pop_from_pq(&plk->queue);
+
+        plk->pid = next_proc->pid;
+    } else {
+        // If the priority queue is empty, release the lock
+        plk->locked = 0;
+        plk->pid = 0;
+    }
+
+    // Wake up the process that just acquired the lock
+    wakeup(plk);
+
+    release(&plk->lk); // Release the spinlock
+}
+
+
+
+
+
+
+
+
+
 

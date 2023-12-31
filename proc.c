@@ -6,7 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-#include "Per-CPU"
+
 
 struct {
   struct spinlock lock;
@@ -534,11 +534,11 @@ procdump(void)
   }
 }
 
-#include <linux/>
+// #include <linux/>
 
-int count_called_syscalls(void){
+// int count_called_syscalls(void){
 
-}
+// }
 
 
 
