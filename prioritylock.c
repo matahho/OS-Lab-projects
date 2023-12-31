@@ -23,7 +23,8 @@ initsleeplock(struct prioritylock *lk, char *name)
 
 void 
 add_to_pq (struct proc* head , struct proc* proc){
-	
+	struct priorityQueue* new_node = (struct priorityQueue*)malloc (sizeof(struct priorityQueue));
+	new_node->proc
 }
 
 
