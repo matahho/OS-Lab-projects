@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "spinlock.h": "c",
+        "cstdlib": "c",
+        "locale": "c",
+        "ostream": "c",
+        "new": "c",
+        "param.h": "c"
+    }
+}
